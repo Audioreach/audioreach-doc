@@ -12,6 +12,7 @@ Before drilling down into architecture overview, it is important to know the gui
 * Configurability through data driven mechanisms which minimizes coding effort on the audio application developers
 * Extensibility allowing developers plug in their differentiating components(secret sauce) into the framework for realization of use cases  
 * Modularity allowing the same solution scale up or down to richer or limited processing environments
+* Distributed processing across heterogenous cores, allowing efficient computational load management and abstracting specifies of processing location from the user
 
 Architecture Walkthrough
 --------------------------------------
