@@ -37,9 +37,10 @@ a physical or soft data link.
 Upon receiving the data, ARE forms an audio graph with processing modules
 according to the graph definition. It processes the audio data piped from the
 source endpoint to the ALSA Sink endpoint, which is then rendered through a
-BCM2835 sound card. Although ARE is designed to run on Audio DSPs, since the
-Raspberry Pi lacks DSPs, ARE runs on the APPS processor in user space for
-demonstration purpose.
+BCM2835 sound card. Although ARE allows developers to design their use case
+graphs and support distributed processing across heterogenous cores, given
+that Raspberry Pi lacks DSP, ARE runs on the APPS processor in user space
+for demonstration purposes.
 
 Additionally, during the playback use-case, the graph topology can be
 visualized in real-time using a PC-based GUI tool called AudioReach
