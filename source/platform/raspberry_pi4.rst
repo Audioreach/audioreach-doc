@@ -216,7 +216,7 @@ will be short. We will want to update the settings to make the logs longer:
    * Uncomment lines **Rotate size (ROTATESIZE)** and **Rotate Generations (ROTATEGENS)**
    * Set **ROTATESIZE** to 1000000.
 
-      * The rotate size refers to the file size cap before creating a new file to write logs to. We are setting it to a large number to capture as many logs as possible, since ARE outputs tons of messages while running a usecase.
+      * The rotate size refers to the file size cap before creating a new file to write logs to. We are setting it to a large number to capture as many logs as possible.
    * Set **ROTATEGENS** to 20.
 
       * This indicates the maximum number of log files that we can generate.
