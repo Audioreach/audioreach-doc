@@ -7,20 +7,20 @@ Raspberry Pi 4
 
 2. `Create a Yocto Image <#create-a-yocto-image>`__
 
-3. `Setting up your Raspberry Pi <#setting-up-your-raspberry-pi>`__
+3. `Setting up the Raspberry Pi <#setting-up-the-raspberry-pi>`__
 
 4. `Running an AudioReach Usecase <#running-an-audioreach-usecase>`__
 
 5. `Troubleshooting <#troubleshooting>`__
 
-This page provides AudioReach Architecture overview on Raspberry Pi platform and walks through steps on how to create a Yocto image that integrates AudioReach,
-load that image on your Raspberry Pi4, and then run an AudioReach usecase.
+This guide provides AudioReach Architecture overview on Raspberry Pi platform and walks through steps on how to create a Yocto image that integrates AudioReach,
+load that image on a Raspberry Pi4 device, and then run an AudioReach usecase.
 
 Architecture Overview
 =====================
       .. figure:: images/raspberry_pi_reference.png
-         :figclass: fig-center
-         :scale: 80 %
+         :figclass: fig-left
+         :scale: 100 %
 
 The above architecture diagram illustrates the playback use-case on a Raspberry
 Pi using AudioReach. In this setup, the agmplay test app is utilized to play an
@@ -48,35 +48,37 @@ Creator (ARC, also known as QACT).
 Create a Yocto image
 ====================
 
-The first step is to integrate our AudioReach components
-into a Yocto build that you can use with Raspberry Pi. To do
-this, we will take the Yocto build and use meta-audioreach layer
-from the AudioReach Github.
+The first step is to integrate AudioReach components
+into a Yocto build that can be loaded onto the Raspberry Pi device. This involves syncing a Yocto build and then integrating the meta-audioreach layer, which is currently available as a Github repository.
 
-Step 1: Set up your Yocto build
+Before following these steps, it would be helpful to learn the basics of how to use a Yocto project. To do this, please reference the official Yocto documentation site: https://docs.yoctoproject.org/2.0/yocto-project-qs/yocto-project-qs.html
+
+Step 1: Create a Yocto build
 -------------------------------
 
-Please follow the below steps to setup your Yocto build:
+Follow the below steps to setup a Yocto build:
 
-   * First check to make sure you have the system requirements for a yocto build. You can check that at the yocto setup instructions here: https://docs.yoctoproject.org/2.0/yocto-project-qs/yocto-project-qs.html
-
-   * Make a directory "yocto" and in that directory, make a directory called "sources".
+   * Create a directory for your Yocto build, and inside this directory, create another directory called "sources".
 
    * In the "sources" directory, clone the following repositories:
 
-   .. code-block:: bash
+    .. code-block:: bash
 
-      git clone git://git.yoctoproject.org/poky -b scarthgap
-      git clone git://git.yoctoproject.org/meta-raspberrypi -b scarthgap
-      git clone https://git.openembedded.org/meta-openembedded -b scarthgap
+		git clone git://git.yoctoproject.org/poky -b scarthgap
+		git clone git://git.yoctoproject.org/meta-raspberrypi -b scarthgap
+		git clone https://git.openembedded.org/meta-openembedded -b scarthgap
 
-   * Go back to the "yocto" directory and run this command to setup your build environment: **source ./sources/poky/oe-init-build-env**
+   * Go back to the root Yocto directory and run the below command to setup the build environment (this will automatically create some necessary configuration files, as well as a "build" directory):
 
-   * Now in the "yocto/build/conf/local.conf" file, replace the line **MACHINE ?= "<machine>"** with the line **MACHINE ?= "raspberrypi4"**
+	.. code-block:: bash
 
-   * Lastly, we need to edit the build/conf/bblayers.conf file and add the meta layers. Edit the file as shown:
+		source ./sources/poky/oe-init-build-env
 
-   .. code-block:: bash
+   * Navigate to the file "<yocto_build_root>/build/conf/local.conf". In this file, locate the line **MACHINE ?= "<machine>"** and replace it with the line **MACHINE ?= "raspberrypi4"**
+
+   * Navigate to the "build/conf/bblayers.conf" file and add the necessary meta layers by editing the file as shown:
+
+    .. code-block:: bash
 
       # POKY_BBLAYERS_CONF_VERSION is increased each time build/conf/bblayers.con
       # changes incompatibly
@@ -86,28 +88,30 @@ Please follow the below steps to setup your Yocto build:
       BBFILES ?= ""
 
       BBLAYERS ?= " \
-         <path_to_build>/yocto/sources/poky/meta \
-         <path_to_build>/yocto/sources/poky/meta-poky \
-         <path_to_build>/yocto/sources/poky/meta-yocto-bsp \
-         <path_to_build>/yocto/sources/meta-raspberrypi \
-         <path_to_build>/yocto/sources/meta-openembedded/meta-oe \
-         <path_to_build>/yocto/sources/meta-openembedded/meta-multimedia \
-         <path_to_build>/yocto/sources/meta-openembedded/meta-networking \
-         <path_to_build>/yocto/sources/meta-openembedded/meta-python \
+         <path_to_build>/sources/poky/meta \
+         <path_to_build>/sources/poky/meta-poky \
+         <path_to_build>/sources/poky/meta-yocto-bsp \
+         <path_to_build>/sources/meta-raspberrypi \
+         <path_to_build>/sources/meta-openembedded/meta-oe \
+         <path_to_build>/sources/meta-openembedded/meta-multimedia \
+         <path_to_build>/sources/meta-openembedded/meta-networking \
+         <path_to_build>/sources/meta-openembedded/meta-python \
 	"
 
-Note: Please make sure that your system has the requirements needed for yocto scarthgap builds. If not, you can download the pre-built "buildtools" for yocto:
+**Note:** The AudioReach project currently uses the "scarthgap" version of Yocto. Please ensure that your local system has the requirements needed for Yocto scarthgap builds by checking the "Linux Distribution" section on the Yocto documentation page here: https://docs.yoctoproject.org/2.0/yocto-project-qs/yocto-project-qs.html. 
+
+If not, please download the pre-built "buildtools" for Yocto using the below steps:
 
    .. code-block:: bash
 
-	  cd <path_to_build>/yocto/sources/poky
+	  cd <yocto_build_root>/sources/poky
 	  scripts/install-buildtools
 
 Then run the following commands to setup your build environment to use buildtools:
 
    .. code-block:: bash
 
-	  cd <path_to_build>/yocto/
+	  cd <yocto_build_root>
 	  source ./sources/poky/oe-init-build-env
 	  source ./sources/poky/buildtools/environment-setup-x86_64-pokysdk-linux
 
@@ -115,79 +119,70 @@ Then run the following commands to setup your build environment to use buildtool
 Step 2: Get AudioReach Meta Layer
 ---------------------------------
 
-Use the below commands to get the AudioReach meta image:
+The AudioReach meta layer contains necessary build recipes for AudioReach. Clone the meta-audioreach repository into the "sources" folder:
 
    .. code-block:: bash
 
-      cd <path_to_build>/yocto/sources
+      cd <yocto_build_root>/sources
       git clone https://github.com/Audioreach/meta-audioreach.git
+	  
+Now navigate to the file "<yocto_build_root>/build/conf/bblayers.conf", and under the **BBLAYERS ?= " \\** section, append the below line to integrate the AudioReach meta layer:
+
+		.. code-block:: bash
+
+			<path_to_build>/sources/meta-audioreach \
 
 
 Step 3: Add AudioReach to system image
 --------------------------------------
 
-The last step is to add AudioReach to the system image to make sure it's compiled.
+To ensure the AudioReach system image is compiled as a part of the full Yocto build, navigate to the file "<yocto_build_root>/build/conf/local.conf" and append the below line:
 
-   * Navigate to **yocto/build/conf/local.conf** and append the below
-     line to the file:
+	.. code-block:: bash
 
-		.. code-block:: bash
+		IMAGE_INSTALL:append = "audioreach-graphservices tinyalsa audioreach-graphmgr audioreach-engine audioreach-conf"
 
-			IMAGE_INSTALL:append = "audioreach-graphservices tinyalsa audioreach-graphmgr audioreach-engine audioreach-conf"
-
-   * Then add these additional lines to local.conf to enable support for ARE (AudioReach Engine) on APPS processor, as Raspberry Pi does not have DSP:
+Raspberry Pi devices do not have a DSP, so instead support for ARE (AudioReach engine) on the APPS processor must be enabled. To do this, add these additional lines to the "local.conf" file:
 
 		.. code-block:: bash
 
 			PACKAGECONFIG:pn-audioreach-graphmgr = "are_on_apps use_default_acdb_path"
 			PACKAGECONFIG:pn-audioreach-graphservices = "are_on_apps"
 
-   * Navigate to **yocto/build/conf/bblayers.conf** and under the **BBLAYERS ?= " \\** section, add the AudioReach meta path:
-
-		.. code-block:: bash
-
-			<path_to_build>/yocto/sources/meta-audioreach \
-
 Step 4: Compile the image
 -------------------------
 
-Now we can compile the build. Navigate to **yocto/build** directory
-and run the command: **bitbake core-image-sato**
+Now the build setup is complete, and the full Yocto image can be generated. Navigate to the "build" directory
+and run the command **bitbake core-image-sato**
 
-* Note: If you get a "umask" error after compiling the build, run the command **umask 022** and try compiling again.
-* If you see a "restricted license" error, navigate to the local.conf file and append the below line:
+* If the bitbake command gives a "umask" error, run the command **umask 022** and try again.
+* If there is a "restricted license" error, navigate to the "<yocto_build_root>/build/conf/local.conf" file and append the below line:
 
 	.. code-block:: bash
 
 		LICENSE_FLAGS_ACCEPTED = "synaptics-killswitch"
 
-If the compilation was successful, you should be able to find the newly generated Yocto image in your workspace.
-
-Navigate to the folder **yocto/build/tmp/deploy/images/raspberrypi4** and unzip the folder **core-image-sato-raspberrypi4.rootfs.wic.bz2**. This will give you the .wic
-file that you will use to flash your Raspberry Pi.
-
-Alternatively, you can run the command
-**bzip2 -d -f tmp/deploy/images/raspberrypi4/core-image-sato-raspberrypi4.rootfs.wic.bz2**
-in your build directory after compiling to unzip the image.
+Once the compilation is successful, the Yocto image will be generated. Navigate to the folder "<yocto_build_root>/build/tmp/deploy/images/raspberrypi4" and locate the zip file "core-image-sato-raspberrypi4.rootfs.wic.bz2". This contains the ".wic" image that can
+be flashed onto the Raspberry Pi device. Unzip the ".bz2" file to obtain the image.
 
 Step 5: Flash the Yocto image
 -----------------------------
 
-Now we're going to flash the Yocto image using Raspberry Pi Imager. You can install
-this from **raspberrypi.com/software**, or by running **sudo apt install rpi-imager** on your terminal.
+The generated Yocto image can be flashed to an SD card using Raspberry Pi Imager. This can be installed from raspberrypi.com/software, or by running **sudo apt install rpi-imager** on a Linux terminal. Then follow the below steps to flash the device:
 
-* Open the application, and select RaspberryPi4 as the device type.
-* Under the Choose OS options, select the "Use custom" option. Make sure you are searching for all file types (by default it doesn't search for .wic files). Then search for your .wic file and select it.
-* Under Storage, select the SD card that you want to flash the image onto, and click Flash.
+* Open Raspberry Pi Imager, and select "RaspberryPi4" as the device type.
+* Under the "Choose OS" options, select the "Use custom" option. Make sure to search for all file types. Then navigate to the ".wic" file and select it.
+* Under "Storage", select the desired SD card. 
+* Click "Flash" to start flashing the image.
 
-Now you can use your SD card to bootup your Raspberry Pi.
+Once the flashing is complete, the SD card will contain the Yocto image.
 
 
-Setting up your Raspberry Pi
+Setting up the Raspberry Pi
 ============================
 
-First you'll want to setup the hardware on your Raspberry Pi, if not done already.
-For this you can follow the steps on the official Raspberry Pi
+First setup the hardware on the Raspberry Pi, if not done so already.
+For this, please refer to the steps on the official Raspberry Pi
 documentation page here: https://www.raspberrypi.com/documentation/computers/getting-started.html
 
 Follow the steps until the section "Install an operating system".
@@ -195,115 +190,109 @@ Follow the steps until the section "Install an operating system".
 Configure bootup settings
 -------------------------
 
-Next, we will need to complete a few steps to enable the audio and update
-the logging settings. You can update the configuration files mentioned
-below using "vi" on the terminal; however, it is much easier to just
-navigate to these files on the file system in your Raspberry Pi and
-update them there. These steps only need to be done once.
+Next, please complete the following steps to enable the audio and update
+the logging settings. The files mentioned below can be updated directly on the Raspberry Pi 4 UI if the device is plugged into an external monitor, or through a local computer using SCP.
 
-To be able to hear the audio output, we need to enable the sound card:
+To enable the sound card:
 
-   * Navigate to file **/boot/config.txt**
-   * Look for the line **#dtparam=audio=off**
+   * Navigate to the file "/boot/config.txt"
+   * Locate the line **#dtparam=audio=off**
    * Change this line to **dtparam=audio=on**
 
-      * Make sure to uncomment this line while you are updating it.
+      * Make sure to uncomment this line while updating.
 
-By default, the system logs printed for running a Raspberry Pi usecase
-will be short. We will want to update the settings to make the logs longer:
+By default, the system logs printed while running a Raspberry Pi usecase will be short. The system log settings should be updated to capture the additional usecase logs that will be printed by AudioReach:
 
-   * Navigate to **/etc/syslog-startup.conf**
-   * Uncomment lines **Rotate size (ROTATESIZE)** and **Rotate Generations (ROTATEGENS)**
+   * Navigate to the file "/etc/syslog-startup.conf"
+   * Uncomment the lines **Rotate size (ROTATESIZE)** and **Rotate Generations (ROTATEGENS)**
    * Set **ROTATESIZE** to 1000000.
 
-      * The rotate size refers to the file size cap before creating a new file to write logs to. We are setting it to a large number to capture as many logs as possible.
+      * This rotate size field indicates the maximum log file size before a new log file will be generated.
    * Set **ROTATEGENS** to 20.
 
-      * This indicates the maximum number of log files that we can generate.
+      * This indicates the maximum number of log files that can be generated.
    * Save the file.
 
-Next, you'll want to push a ".wav" audio file to some location in the Raspberry Pi (such as the "/etc" folder).
-
-With this the configuration should be finished. Shut down the Raspberry Pi through
-the homescreen or by running the command **shutdown -r -time "now"** through the
-terminal so the changes can take effect.
+To apply the updated configuration settings, shut down the Raspberry Pi through
+the homescreen, or by running the command **shutdown -r -time "now"** through the
+terminal.
 
 Enable Real-time Calibration Mode
 ---------------------------------
 
-ARC (AudioReach Creator) is a tool that allows you to see the current graph
-configuration while running a usecase, as well as create and modify your own graphs.
-These steps are optional, as you don't technically need ARC to run the usecase.
+ARC (AudioReach Creator) is a tool that allows the user to perform several functionalities related to the audio usecase, including creating and editing audio usecase graphs, and editing audio configurations while running an
+audio usecase in real time. For more information on ARC, please reference the :ref:`arc_design` page.
 
-On your Raspberry Pi:
+The below steps will demonstrate how to connect ARC to the Raspberry Pi so that the usecase graph can be viewed in real time.
+
+On the Raspberry Pi:
 
    * Connect the Raspberry Pi to internet using Ethernet or over Wifi.
+
       * Ethernet
+	  
          * Plug an Ethernet cable into the Raspberry Pi’s Ethernet port.
       * Wifi
+	  
          * On the top right of the screen click the icon beside the time, and select "Preferences".
          * Find the "Wireless Network" option on the left to choose the network.
-   * Open a terminal and run the command **ifconfig** to get your current IP address.
-   * Run **ats_gateway <IP address> 5558**
-   * Open another terminal and run the command **agm_server**
 
-On your local computer:
-   * Install ARC (also known as QACT) on Windows host machine using :ref:`steps_to_install_arc`. You will need at least QACT 8.1
-   * Open ARC, and click on "Connection configuration" option.
-   * Add the Raspberry Pi as a device by adding entry
-      **<Raspberry PI IP address>:5558** under the TCP/IP section
-   * Refresh the "Available Devices" list. The IP address of your Raspberry Pi should appear on the list.
+   * Open a terminal and run the command **ifconfig** to find the current IP address.
+   * On the terminal, run the command **ats_gateway <IP address> 5558**
+   * Open another terminal, and run the command **agm_server**
 
-      * Note: If it does not come up, make sure the **ats_gateway** and **agm_server** commands are still running.
+On a local computer:
 
-   * Choose the entry and click connect.
+   * Install ARC (also known as QACT) on a Windows host machine using :ref:`steps_to_install_arc`. You will need at least QACT 8.1
+   * Open ARC, and click on the "Connection configuration" option.
+   * Add the Raspberry Pi as a device by adding the entry **<Raspberry PI IP address>:5558** under the TCP/IP section
+   * Refresh the "Available Devices" list. The IP address of the Raspberry Pi should appear on the list.
 
-Now when running a usecase, you should be able to see the current usecase
-graph on ARC.
+      * If it does not appear, please ensure the **ats_gateway** and **agm_server** commands are still running.
+
+   * Select the entry and click connect.
 
 Running an AudioReach Usecase
 =============================
 
-Now all the setup is finished, and you should finally be able to use the
-Raspberry Pi to play audio.
+Once all of the above setup is complete, follow the below steps to run an audio usecase:
 
-   * Connect your headphones/other audio device to the audio port on your Raspberry Pi.
-   * Open a terminal and run the command **agm_server** (if not done already).
+   * Push a ".wav" file onto some location in the Raspberry Pi, such as the "/etc" folder. Restart the system for the changes to take effect.
+   * Connect an external audio device (such as speakers or headphones) to the audio port of the Raspberry Pi.
+   * Open a terminal and run the command **agm_server** (if not done so already).
    * Open another terminal window and run the below command to start the playback usecase:
+ 
+		**agmplay /[path_to_audio_file]/<clip_name>.wav -D 100 -d 100 -i PCM_RT_PROXY-RX-2**
 
-       **agmplay /[path_to_audio_file]/<clip_name>.wav -D 100 -d 100 -i PCM_RT_PROXY-RX-2**
-
-If all goes well, you should be able to hear the output through your headphones.
-The system logs for the usecase will be saved in /var/log/messages.
+Now the ".wav" file should play through the external audio device. If the Raspberry Pi is connected to ARC, the current usecase graph will appear in the graph view.
+The system logs for the usecase will be saved in the file "/var/log/messages".
 
 Troubleshooting
 ===============
 
-If you get an error while trying to run the usecase, below are some things you can
-try:
+If there are some issues running the usecase, please refer to the suggested fixes below:
 
 Check the sound card
 --------------------
 
-On your Raspberry Pi, open the file /proc/asound/cards. You should see a couple
-sound card entries in this list. If it says "no sound cards available", you likely
+On the Raspberry Pi, open the file "/proc/asound/cards". There should be a few
+sound card entries in this list. If the file instead says "no sound cards available", you likely
 forgot to enable the sound card (see section `Configure bootup settings <#configure-bootup-settings>`__).
 
 Check the sound card ID
 -----------------------
 
-If your Raspberry Pi is connected to the monitor, the HDMI-based soundcard might get enumerated in proc/asound/cards, causing the
-card ID of the Headphones to change. For this you will need to have ARC installed on a secondary computer (see *Enable
-ARC connection*).
+If the Raspberry Pi is connected to the monitor, the HDMI-based soundcard might get enumerated in the file "/proc/asound/cards", causing the
+card ID of the Headphones to change. To fix this, you will need to have ARC installed on a secondary computer (see section `Enable Real-time Calibration Mode <#enable-real-time-calibration-mode>`__).
 
-   #. Copy the ACDB files from your Raspberry Pi to your local computer. The files
-      can be found under /etc/acdbdata
+   #. Copy the ACDB files from the Raspberry Pi to your local computer. These files
+      can be found under the folder "/etc/acdbdata".
 
-      * Note: I used the program "WinScp" to do this. However, you can also use the "scp" command on your Raspberry Pi terminal to copy these files over to your local computer.
+      * Note: This can be done by using "scp" commands on a Linux terminal or by using a program such as "WinScp".
 
-   #. Open up ARC in offline mode (select "Open ACDB File on Disk" option).
-      It will prompt you to select a workspace file. Select the workspace file
-      that you copied from your Raspberry Pi.
+   #. Open ARC in offline mode by selecting the "Open ACDB File on Disk" option.
+      This will prompt you to select a workspace file. Select the workspace file
+      copied from the Raspberry Pi.
 
    #. On the top left drop down menu displaying the usecases,
       select any usecase that uses "Headphones".
@@ -311,25 +300,25 @@ ARC connection*).
    #. Double click the "ALSA device sink" module shown below
 
       .. figure:: images/headphone_screenshot.png
-         :figclass: fig-center
+         :figclass: fig-left
          :scale: 80 %
 
-   #. On the menu that comes up, check the card_id. We want the card_id here to
-      be the same as the ID that corresponds with the Headphones entry on the
-      /proc/asound/cards file on your Raspberry Pi.
+   #. This will open the Configure Window. Check the "card_id" field here. The card_id should
+      be the same as the ID that corresponds with the Headphones entry in the
+      "/proc/asound/cards" file on the Raspberry Pi.
 
       .. figure:: images/alsa_sink_module.png
-         :figclass: fig-center
-         :scale: 80 %
+         :figclass: fig-left
+         :scale: 100 %
 
       If it is not the same, update the value, and click "Set to ACDB" on the
       bottom for the changes to take effect.
 
-   #. On the ARC menu, click "Save" on the top left to update your ACDB files.
+   #. On the ARC menu, click "Save" on the top left to update the ACDB files.
 
-   #. Copy the updated ACDB files back to your Raspberry Pi, and shutdown
-      the system so the changes can take effect.
+   #. Copy the updated ACDB files back to the Raspberry Pi (it is recommended to first delete the files that are currently in the "/etc/acdbdata" folder to ensure the changes take effect)
+   
+   #. Shutdown the system so the changes can take effect. Then, try running the usecase again.
 
-   #. Try running the usecase again.
 
 
